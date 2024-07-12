@@ -11,5 +11,5 @@ public class KillbindModuleSettings : EverestModuleSettings {
 
     public bool SkipAnimation {get; set;}
 
-
+    public bool AllowWithGolden {get; set;}
 }

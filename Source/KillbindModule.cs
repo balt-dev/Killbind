@@ -87,7 +87,7 @@ public class KillbindModule : EverestModule {
                 .Select((follower) => follower.Entity as Strawberry)
                 .FirstOrDefault();
 
-            if (golden != null) {
+            if (golden != null && !Settings.AllowWithGolden) {
                 Level level = self.SceneAs<Level>();
 				level.Particles.Emit(Strawberry.P_WingsBurst, 8, golden.Position, new Vector2(4f, 2f));
 		        Audio.Play("event:/game/general/strawberry_laugh", golden.Position);
