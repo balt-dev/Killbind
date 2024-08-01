@@ -2,7 +2,6 @@
 using System.Linq;
 using System.Reflection;
 using Microsoft.Xna.Framework;
-using Monocle;
 using MonoMod.Cil;
 using MonoMod.RuntimeDetour;
 using MonoMod.Utils;
@@ -13,7 +12,7 @@ public class KillbindModule : EverestModule {
     public static KillbindModule Instance { get; private set; }
 
     public override Type SettingsType => typeof(KillbindModuleSettings);
-    public static KillbindModuleSettings Settings => (KillbindModuleSettings) Instance._Settings;
+    static KillbindModuleSettings Settings => (KillbindModuleSettings) Instance._Settings;
 
     private static ILHook hook_PlayerDeadBody_DeathRoutine;
     private static readonly MethodInfo m_DeathRoutineEnumerator
@@ -35,7 +34,27 @@ public class KillbindModule : EverestModule {
         On.Celeste.Player.Update += OnPlayerUpdate;
         hook_PlayerDeadBody_DeathRoutine = 
                 new ILHook(m_DeathRoutineEnumerator, DeathRoutineQuickDie);
+        On.Celeste.Pico8.Classic.player.update += OnPicoPlayerUpdate;
+        On.Celeste.Pico8.Classic.restart_room += OnPicoRestartRoom;
     }
+
+    private static void OnPicoPlayerUpdate(On.Celeste.Pico8.Classic.player.orig_update orig, Pico8.Classic.player self)
+    {
+        orig(self);
+        if (!Settings.Killbind.Pressed) return;
+        Settings.Killbind.ConsumePress();
+        self.G.kill_player(self);
+    }
+    
+    private static void OnPicoRestartRoom(On.Celeste.Pico8.Classic.orig_restart_room orig, Pico8.Classic self)
+    {
+        orig(self);
+        if (Settings.SkipAnimation)
+        {
+            self.delay_restart = 1;
+        }
+    }
+
 
     private static void DeathRoutineQuickDie(ILContext il) {
         ILCursor cur = new(il);
